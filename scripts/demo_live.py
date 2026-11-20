@@ -1,6 +1,6 @@
 """Live demo: one statement, the model's surface answer, and its internal readout, side by side.
 
-Runs in well under 60 s on an M-series Mac after `make probe` has saved the probe
+Runs in well under 60 s on an M-series Mac after `python3 tasks.py probe` has saved the probe
 (results/probe_<model>_layer<L>.npz). Every number printed is measured live on this run.
 
 usage:

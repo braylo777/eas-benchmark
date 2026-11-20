@@ -2,7 +2,7 @@
 
 **Status:** every number below comes from a run with a saved log. Nothing is rounded up.
 **Code:** this repository (git commit `cfee8fd` or later)
-**Reproduce:** `make setup && make reproduce` · live demo: `make demo`
+**Reproduce:** `python3 tasks.py setup && python3 tasks.py reproduce` · live demo: `python3 tasks.py demo`
 **Logs:** `logs/sim_audit_tests.log` (tests, deck audit, simulation) · `logs/probe_qwen2.5-0.5b.log` · `logs/probe_qwen2.5-1.5b.log` · `logs/demo_live.log` · `logs/report.log`
 
 Two kinds of evidence appear here. Keep them apart on stage.
@@ -80,7 +80,7 @@ Seed 20261106, 100,000 trials per class (benign, harmful, legal-risk, resource-r
 
 ## 5. Live demo (measured, 17.7 s wall-clock on this Mac)
 
-`make demo` prints one held-out statement with the surface answer and the internal readout side by side. Saved run (`logs/demo_live.log`):
+`python3 tasks.py demo` prints one held-out statement with the surface answer and the internal readout side by side. Saved run (`logs/demo_live.log`):
 
 - **Statement:** "17 is greater than 78." (truth: False)
 - **Neutral prompt:** surface False (P_True 0.03); probe False (P_True 0.00).
