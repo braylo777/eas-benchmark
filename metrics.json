@@ -1,0 +1,39 @@
+{
+  "coverage": 98.3425414364641,
+  "coverage_label": "Rust line coverage % (cargo-llvm-cov) of the eas library; src/bin CLIs excluded",
+  "false_pass": 0.559846,
+  "false_pass_ci": [
+    0.55845385,
+    0.5612462500000001
+  ],
+  "false_pass_label": "SIMULATION: scoring engine at V >= 0.65 under assumed generators (Rust re-run, 95% percentile bootstrap)",
+  "false_pass_seed_sd": 0.0006422935465968812,
+  "loc_rust": 2978,
+  "models": [
+    "ollama:gemma3:1b",
+    "ollama:granite3.3:2b",
+    "ollama:llama3.2:1b",
+    "ollama:llama3.2:3b",
+    "ollama:phi4-mini:3.8b",
+    "ollama:qwen2.5-coder:7b",
+    "ollama:qwen2.5:0.5b",
+    "ollama:qwen2.5:1.5b",
+    "ollama:qwen2.5:3b",
+    "hf:Qwen/Qwen2.5-0.5B (v0.1 probe)",
+    "hf:Qwen/Qwen2.5-1.5B (v0.1 probe)"
+  ],
+  "models_count": 11,
+  "tests": 187,
+  "tests_breakdown": {
+    "python": 6,
+    "rust": 181
+  },
+  "tests_passing": 187,
+  "trials": 25224480,
+  "trials_breakdown": {
+    "ollama_model_trials_v02": 24480,
+    "simulation_v02": 25200000,
+    "v01_probe_prompts_not_counted": 5440,
+    "v01_python_simulation_not_counted": 600000
+  }
+}
