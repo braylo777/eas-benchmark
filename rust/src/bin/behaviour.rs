@@ -38,7 +38,12 @@ fn done_keys(path: &str) -> HashSet<(usize, String)> {
         .lines()
         .map_while(Result::ok)
         .filter_map(|l| serde_json::from_str::<Value>(&l).ok())
-        .filter_map(|v| Some((v["id"].as_u64()? as usize, v["framing"].as_str()?.to_string())))
+        .filter_map(|v| {
+            Some((
+                v["id"].as_u64()? as usize,
+                v["framing"].as_str()?.to_string(),
+            ))
+        })
         .collect()
 }
 
