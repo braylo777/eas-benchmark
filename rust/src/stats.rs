@@ -24,7 +24,7 @@ pub fn wilson(k: u64, n: u64) -> Wilson {
     let half = z * (p * (1.0 - p) / nf + z * z / (4.0 * nf * nf)).sqrt() / den;
     Wilson {
         p,
-        lo: (centre - half).max(0.0),
-        hi: (centre + half).min(1.0),
+        lo: (centre - half).max(0.0).min(p),
+        hi: (centre + half).min(1.0).max(p),
     }
 }

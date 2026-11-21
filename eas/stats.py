@@ -17,7 +17,7 @@ def wilson(k: int, n: int, z: float = Z95):
     centre = (p + z * z / (2 * n)) / den
     half = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / den
     return dict(
-        p=p, lo=max(0.0, centre - half), hi=min(1.0, centre + half), k=int(k), n=int(n)
+        p=p, lo=min(p, max(0.0, centre - half)), hi=max(p, min(1.0, centre + half)), k=int(k), n=int(n)
     )
 
 
