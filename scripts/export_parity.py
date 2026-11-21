@@ -45,3 +45,41 @@ out = {
 }
 (ROOT / "rust" / "tests" / "fixtures" / "parity.json").write_text(json.dumps(out))
 print(len(rows), "rows")
+
+# ---- v0.2 fixture: Python random, statement set, prompts, AUC and McNemar references ----
+import random  # noqa: E402
+
+from scipy.stats import binomtest  # noqa: E402
+from sklearn.metrics import roc_auc_score  # noqa: E402
+
+from eas.probe_data import prompt, statements  # noqa: E402
+
+r = random.Random(7)
+rand = {
+    "u32": [r.getrandbits(32) for _ in range(50)],
+    "bits": [[k, random.Random(123).getrandbits(k)] for k in (1, 5, 13, 31, 32)],
+    "randint": [random.Random(s).randint(2, 40) for s in range(40)],
+    "sample_big": random.Random(99).sample(range(10, 100), 2),
+    "sample_small": random.Random(99).sample(range(10), 4),
+    "sample_k8": random.Random(5).sample(range(1000), 8),
+    "choice": [random.Random(s).choice([-1, 1]) for s in range(40)],
+    "seed_big": random.Random(2**40 + 3).getrandbits(32),
+}
+S = statements()
+rng = np.random.default_rng(3)
+auc_cases = []
+for n, ties in ((50, False), (400, True), (7, True)):
+    y = (np.arange(n) % 3 == 0).astype(int)
+    s = rng.integers(0, 5, n).astype(float) if ties else rng.standard_normal(n) + y
+    auc_cases.append({"y": y.tolist(), "s": s.tolist(), "auc": float(roc_auc_score(y, s))})
+mcn = [[b, c, float(binomtest(min(b, c), b + c, 0.5).pvalue) if b + c else 1.0]
+       for b, c in ((0, 0), (3, 0), (10, 2), (40, 41), (120, 60), (5, 5))]
+out2 = {
+    "random": rand,
+    "statements": [{"id": s["id"], "family": s["family"], "text": s["text"], "label": s["label"]} for s in S],
+    "prompts": {fr: [prompt(S[i], fr) for i in (0, 1, 333, 679)] for fr in ("neutral", "mislead", "flatter", "agree")},
+    "auc": auc_cases,
+    "mcnemar": mcn,
+}
+(ROOT / "rust" / "tests" / "fixtures" / "v02.json").write_text(json.dumps(out2))
+print(len(S), "statements")

@@ -80,12 +80,27 @@ pub fn violation_residue(p: u64) -> u64 {
     sha256_mod(name.as_bytes(), p)
 }
 
+/// Residues for every prime, computed once.
+fn residues() -> &'static [u64; 4] {
+    static R: std::sync::OnceLock<[u64; 4]> = std::sync::OnceLock::new();
+    R.get_or_init(|| {
+        let mut r = [0u64; 4];
+        for (i, (p, _)) in PRIMES.iter().enumerate() {
+            r[i] = violation_residue(*p);
+        }
+        r
+    })
+}
+
 /// Returns (prime_clear, vetoing prime). K = sha256(action_id || "||" || state).
+/// The first prime (in PRIMES order) that matches is reported, as in the Python.
 pub fn prime_gate(action_id: &str, state: &str) -> (u8, Option<u64>) {
-    let msg = format!("{action_id}||{state}");
-    for (p, _) in PRIMES {
-        if sha256_mod(msg.as_bytes(), p) == violation_residue(p) {
-            return (0, Some(p));
+    let digest = Sha256::digest(format!("{action_id}||{state}").as_bytes());
+    let res = residues();
+    for (i, (p, _)) in PRIMES.iter().enumerate() {
+        let k = digest.iter().fold(0u64, |r, b| (r * 256 + *b as u64) % p);
+        if k == res[i] {
+            return (0, Some(*p));
         }
     }
     (1, None)
