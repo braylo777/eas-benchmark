@@ -1,0 +1,127 @@
+{
+  "covert25": {
+    "covert_unsafe_false_pass": {
+      "bootstrap": {
+        "est": 0.9559590465525516,
+        "hi": 0.957015077587586,
+        "lo": 0.9548146296592546
+      },
+      "n_boot": 2000,
+      "wilson": {
+        "est": 0.9559590465525516,
+        "hi": 0.9570824876293417,
+        "k": 119514,
+        "lo": 0.9548075860535327,
+        "n": 125020
+      }
+    },
+    "false_pass_all_unsafe": {
+      "est": 0.658974,
+      "hi": 0.6602867608600673,
+      "k": 329487,
+      "lo": 0.6576587963904017,
+      "n": 500000
+    },
+    "trials": 600000
+  },
+  "label": "SIMULATION (Rust harness; scoring engine under assumed generators; not a model measurement)",
+  "main": {
+    "auc_V_benign_vs_unsafe": {
+      "bootstrap": {
+        "est": 0.87793558218,
+        "hi": 0.8790158762753199,
+        "lo": 0.8767176857379629
+      },
+      "n_boot": 200
+    },
+    "equal_error": {
+      "false_pass": 0.182218,
+      "false_veto": 0.20546,
+      "threshold": 0.82
+    },
+    "false_pass_at_0.65": {
+      "bootstrap": {
+        "est": 0.559846,
+        "hi": 0.5612462500000001,
+        "lo": 0.55845385
+      },
+      "n_boot": 2000,
+      "wilson": {
+        "est": 0.559846,
+        "hi": 0.5612214756647326,
+        "k": 279923,
+        "lo": 0.5584696047585541,
+        "n": 500000
+      }
+    },
+    "false_veto_at_0.65": {
+      "bootstrap": {
+        "est": 0.04405,
+        "hi": 0.04532,
+        "lo": 0.04279
+      },
+      "n_boot": 2000,
+      "wilson": {
+        "est": 0.04405,
+        "hi": 0.04533946865041122,
+        "k": 4405,
+        "lo": 0.04279556026695326,
+        "n": 100000
+      }
+    },
+    "gate_veto_rate": {
+      "theory": 0.03758824607122302,
+      "wilson": {
+        "est": 0.037748333333333335,
+        "hi": 0.03823354312007236,
+        "k": 22649,
+        "lo": 0.03726904257783912,
+        "n": 600000
+      }
+    },
+    "trials": 600000
+  },
+  "main_seed": 20261106,
+  "n_per_class": 100000,
+  "python_reference_v01": {
+    "auc_V": 0.878,
+    "covert_pass": 0.955,
+    "false_pass": 0.56,
+    "false_veto": 0.044,
+    "gate_veto": 0.0376
+  },
+  "rng": "xorshift64* (differs from numpy; agreement with Python is statistical, not bit-exact)",
+  "seconds": 14.952033041,
+  "seed_variance": {
+    "covert_unsafe_false_pass": {
+      "max": 0.9570914902117459,
+      "mean": 0.9561824784338324,
+      "min": 0.9549315904419322,
+      "n": 20,
+      "sd": 0.0006042394835564741
+    },
+    "false_pass": {
+      "max": 0.56158,
+      "mean": 0.5600875,
+      "min": 0.558764,
+      "n": 20,
+      "sd": 0.0006422935465968812
+    },
+    "false_veto": {
+      "max": 0.04496,
+      "mean": 0.043949999999999996,
+      "min": 0.04291,
+      "n": 20,
+      "sd": 0.0005351635264103865
+    },
+    "gate_veto": {
+      "max": 0.038075,
+      "mean": 0.03766491666666667,
+      "min": 0.03698,
+      "n": 20,
+      "sd": 0.0002636032788045158
+    },
+    "seeds": 20
+  },
+  "trials_total": 25200000
+}
