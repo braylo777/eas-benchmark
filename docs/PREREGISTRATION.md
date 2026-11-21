@@ -48,4 +48,11 @@ Two studies. Both use only local compute. No cloud API is used.
 
 ## Deviations
 
-(none yet)
+1. **Abstentions (added 2026-11-20, during the runs).** For some prompts a model emits end-of-sequence as its
+   first token. Ollama then returns no logprobs, so the preregistered decision rule cannot be applied.
+   These trials are logged as abstentions. A statement with any abstention is dropped from that model's
+   paired analysis. A model is analysed only if ≥ 612 of 680 statements (90%) remain. Abstention and
+   exclusion counts are reported per model. Result: `smollm2:1.7b` abstained on 2,040 of 2,720 trials,
+   so no statement was complete and the model is excluded. The other 9 models had 0 abstentions.
+2. **Models not run.** `qwen3.6:27b` (17 GB) does not fit in 16 GB RAM at usable speed. `carnimbus-v1`
+   is a private fine-tune, not an open model. Both are left out.
