@@ -3,6 +3,7 @@
 
 Usage: python3 tasks.py <task> [--py PATH] [--models M1 M2 ...]
 Tasks: setup test audit sim probe report reproduce quick demo rust parity
+       rsim behaviour analyze reanalyze metrics   (v0.2 Rust harness)
 """
 import argparse
 import os
@@ -90,6 +91,16 @@ def main():
         run([py, "scripts/export_parity.py"])
     elif t == "rust":  # Rust port: build + parity tests
         run(["cargo", "test", "--release"], cwd=ROOT / "rust")
+    elif t == "rsim":  # v0.2 Study S: Rust Monte Carlo, 20 seeds, bootstrap CIs
+        run(["cargo", "run", "--release", "--bin", "montecarlo"], cwd=ROOT / "rust")
+    elif t == "behaviour":  # v0.2 Study B: local Ollama models (raw data -> ~/.cache/eaw-data)
+        run(["cargo", "run", "--release", "--bin", "behaviour", "--", "run", "--models", ",".join(a.models)], cwd=ROOT / "rust")
+    elif t == "analyze":  # v0.2 Study B summary + preregistered tests
+        run(["cargo", "run", "--release", "--bin", "behaviour", "--", "analyze"], cwd=ROOT / "rust")
+    elif t == "reanalyze":  # bootstrap CIs on the v0.1 probe items
+        run(["cargo", "run", "--release", "--bin", "reanalyze"], cwd=ROOT / "rust")
+    elif t == "metrics":  # metrics.json (runs tests + coverage)
+        run(["cargo", "run", "--release", "--bin", "metrics", "--", "--coverage", "--python", py], cwd=ROOT / "rust")
     else:
         ap.error(f"unknown task {t!r}")
 
