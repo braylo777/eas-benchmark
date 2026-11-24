@@ -36,8 +36,7 @@ jobs:
       - run: python tests/test_engine.py
       - name: parity fixtures are up to date
         run: |
-          python scripts/export_parity.py
-          git diff --exit-code rust/tests/fixtures/
+          python scripts/check_fixtures.py
       - name: README numbers equal results/metrics.json
         run: python scripts/readme_numbers.py --check
       - name: no private files tracked
