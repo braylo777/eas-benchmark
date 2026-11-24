@@ -2,6 +2,26 @@
 
 All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/); versions follow SemVer.
 
+## [1.0.0] — 2026-11-24
+
+### Added
+- Study P: pressure probes. 9 framings (threat, shame, coercion, 3 levels each) vs the neutral prompt, on 9 local Ollama models.
+  `docs/PREREGISTRATION-v2.md` was committed before the first Study P trial (commit `8834da4`).
+- `rust/src/pressure.rs`, `rust/src/bin/pressure.rs`: runner and analysis (effect size, 95% bootstrap CI, dose-response, pooling).
+- `docs/EAW-paper.md` and `.pdf`, five SVG figures in `docs/img/` (`scripts/make_figures.py`, `scripts/build_paper.py`).
+- `results/metrics.json` splits `sim_trials` (SIMULATION) from `real_runs` (MEASURED). `scripts/readme_numbers.py` keeps the README table equal to it.
+- `Makefile` (`make metrics`), `Dockerfile` (simulation path), static results dashboard in `dashboard/`.
+- README: title, status badge, "What welfare means here" (what is and is not measured).
+- CI: ubuntu and macOS, pinned numpy/scipy/scikit-learn, README-numbers check, private-file check.
+
+### Changed
+- `metrics.json` moved to `results/metrics.json` with the new schema (value, kind, command per number; generated_at, git_sha, machine).
+- `.claude/` is no longer tracked (ignored).
+
+### Fixed
+- clippy `approx_constant` on the golden ratio (`std::f64::consts::GOLDEN_RATIO`). CI was red on this since v0.2.
+- Parity-fixture check in CI used unpinned numpy; it now uses the versions in `requirements.txt`.
+
 ## [0.2.0] — 2026-11-20
 
 ### Added

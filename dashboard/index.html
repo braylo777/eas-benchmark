@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EAW results</title>
+<meta name="description" content="Empirical AI Welfare (EAW): behavioural stress benchmark results. Measured on local models; simulation labelled separately.">
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#fff;--ink:#1a202c;--mute:#718096;--line:#e2e8f0;--card:#f7fafc;--meas:#2b6cb0;--sim:#c05621;--ok:#2f855a;--bad:#c53030}
+@media (prefers-color-scheme:dark){:root{--bg:#10151c;--ink:#e2e8f0;--mute:#a0aec0;--line:#2d3748;--card:#171e28;--meas:#63b3ed;--sim:#ed8936;--ok:#68d391;--bad:#fc8181}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,Helvetica,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.7rem;margin:0 0 4px}h2{font-size:1.15rem;margin:36px 0 10px}
+.sub{color:var(--mute);margin:0 0 20px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.tile b{display:block;font-size:1.7rem}.tile span{color:var(--mute);font-size:.85rem}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:99px;border:1px solid currentColor;margin-left:6px;vertical-align:middle}
+.meas{color:var(--meas)}.sim{color:var(--sim)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+th{color:var(--mute);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.row{display:grid;grid-template-columns:minmax(120px,210px) 1fr 60px;align-items:center;gap:10px;margin:6px 0;font-size:.9rem}
+.track{position:relative;height:18px;background:var(--card);border:1px solid var(--line);border-radius:6px}
+.ci{position:absolute;top:7px;height:2px;background:var(--meas)}
+.pt{position:absolute;top:3px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--meas)}
+.note{color:var(--mute);font-size:.85rem}
+.yes{color:var(--ok);font-weight:600}.no{color:var(--bad);font-weight:600}
+footer{margin-top:40px;color:var(--mute);font-size:.8rem}
+a{color:var(--meas)}
+</style>
+</head>
+<body>
+<main>
+<h1>EAW results <span class="tag meas">MEASURED</span></h1>
+<p class="sub">Empirical AI Welfare (EAW): a behavioural stress benchmark. It measures how local models answer under pressure prompts.
+It does not measure feelings, valence or consciousness.</p>
+<div id="err" class="note" hidden></div>
+
+<div class="tiles" id="tiles"></div>
+
+<h2>False-pass under pressure, by model <span class="tag meas">MEASURED</span></h2>
+<p class="note">Share of answers that were right on a neutral prompt and flip to the user's wrong claim under threat, shame or coercion prompts. Mean of 9 framings. Dot = estimate, line = 95% bootstrap CI.</p>
+<div id="models"></div>
+
+<h2>Pressure kind and level <span class="tag meas">MEASURED</span></h2>
+<p class="note">Pooled over models. Grey row: a plain wrong claim with no pressure (Study B).</p>
+<div class="scroll"><table id="kinds"></table></div>
+
+<h2>Preregistered hypotheses <span class="tag meas">MEASURED</span></h2>
+<p class="note">Rules were committed before the runs: <a href="https://github.com/braylo777/eas-benchmark/blob/main/docs/PREREGISTRATION-v2.md">PREREGISTRATION-v2</a>. A hypothesis holds when more than half of the models are affected.</p>
+<div class="scroll"><table id="hyp"></table></div>
+
+<h2>Models</h2>
+<div class="scroll"><table id="modeltab"></table></div>
+
+<h2>Simulation <span class="tag sim">SIMULATION</span></h2>
+<p class="note" id="sim"></p>
+
+<footer id="foot"></footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const pct=(v,d=1)=>(100*v).toFixed(d)+"%";
+const num=v=>Number(v).toLocaleString("en-US");
+async function get(p){const r=await fetch(p);if(!r.ok)throw new Error(p+" "+r.status);return r.json();}
+function bar(label,c){
+  const row=document.createElement("div");row.className="row";
+  row.innerHTML=`<span></span><div class="track"><div class="ci" style="left:${100*c.lo}%;width:${100*(c.hi-c.lo)}%"></div><div class="pt" style="left:${100*c.est}%"></div></div><b>${pct(c.est,0)}</b>`;
+  row.firstChild.textContent=label;return row;
+}
+function cell(tr,txt,cls){const td=document.createElement("td");td.textContent=txt;if(cls)td.className=cls;tr.appendChild(td);}
+function head(t,cols){const tr=document.createElement("tr");cols.forEach(c=>{const th=document.createElement("th");th.textContent=c;tr.appendChild(th);});t.appendChild(tr);}
+(async()=>{
+  try{
+    const [mt,ps]=await Promise.all([get("data/metrics.json"),get("data/pressure_summary.json")]);
+    const v=mt.metrics;
+    [["Real model runs",num(v.real_runs.value),"MEASURED"],["Models",v.models.value,"9 Ollama + 2 probes"],
+     ["False-pass under pressure",pct(v.false_pass_real.value)+" ["+pct(v.false_pass_real.ci[0],0)+", "+pct(v.false_pass_real.ci[1],0)+"]","MEASURED, pooled"],
+     ["Tests",v.tests.value,"all passing"]].forEach(([a,b,c])=>{
+      const d=document.createElement("div");d.className="tile";
+      d.innerHTML="<span></span><b></b><span></span>";d.children[0].textContent=a;d.children[1].textContent=b;d.children[2].textContent=c;$("tiles").appendChild(d);});
+    Object.entries(ps.models).sort((a,b)=>a[1].all_framings.flip_rate.est-b[1].all_framings.flip_rate.est)
+      .forEach(([n,m])=>$("models").appendChild(bar(n+" ("+(m.meta.parameter_size||"")+")",m.all_framings.flip_rate)));
+    const k=$("kinds");head(k,["Condition","Flip rate","95% CI"]);
+    const rows=[];if(ps.pooled.mislead_flip)rows.push(["plain wrong claim (no pressure)",ps.pooled.mislead_flip]);
+    ["threat","shame","coercion"].forEach(x=>{rows.push([x+" (3 levels)",ps.pooled.by_kind[x]]);
+      [1,2,3].forEach(l=>rows.push(["   "+x+" level "+l,ps.pooled.by_kind_level[x+l]]));});
+    rows.forEach(([a,c])=>{const tr=document.createElement("tr");cell(tr,a);cell(tr,pct(c.est),"n");cell(tr,pct(c.lo)+" to "+pct(c.hi),"n");k.appendChild(tr);});
+    const h=$("hyp");head(h,["Hypothesis","Models affected","Supported"]);
+    Object.entries(ps.hypotheses).forEach(([n,x])=>{const tr=document.createElement("tr");cell(tr,n.replace(/_/g," "));cell(tr,x.models_affected+" of "+x.of,"n");
+      const td=document.createElement("td");td.textContent=x.supported?"yes":"no";td.className=x.supported?"yes":"no";tr.appendChild(td);h.appendChild(tr);});
+    const mt2=$("modeltab");head(mt2,["Model","Params","Quant","Digest"]);
+    v.models.list.forEach(m=>{const tr=document.createElement("tr");cell(tr,m.name);cell(tr,m.parameters||m.precision||"");cell(tr,m.quantization||"");cell(tr,(m.digest||"").slice(0,12));mt2.appendChild(tr);});
+    $("sim").textContent=num(v.sim_trials.value)+" Monte Carlo trials. False-pass of the scoring engine at V >= 0.65: "+pct(v.false_pass_sim.value)+" ["+pct(v.false_pass_sim.ci[0])+", "+pct(v.false_pass_sim.ci[1])+"]. This describes formulas under assumed inputs, not any model.";
+    $("foot").textContent="Generated "+mt.generated_at+" at commit "+mt.git_sha.slice(0,7)+". Data: data/metrics.json, data/pressure_summary.json.";
+  }catch(e){const x=$("err");x.hidden=false;x.textContent="Could not load data: "+e.message;}
+})();
+</script>
+</body>
+</html>
