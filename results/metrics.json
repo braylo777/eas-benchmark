@@ -1,39 +1,159 @@
 {
-  "coverage": 98.3425414364641,
-  "coverage_label": "Rust line coverage % (cargo-llvm-cov) of the eas library; src/bin CLIs excluded",
-  "false_pass": 0.559846,
-  "false_pass_ci": [
-    0.55845385,
-    0.5612462500000001
-  ],
-  "false_pass_label": "SIMULATION: scoring engine at V >= 0.65 under assumed generators (Rust re-run, 95% percentile bootstrap)",
-  "false_pass_seed_sd": 0.0006422935465968812,
-  "loc_rust": 2978,
-  "models": [
-    "ollama:gemma3:1b",
-    "ollama:granite3.3:2b",
-    "ollama:llama3.2:1b",
-    "ollama:llama3.2:3b",
-    "ollama:phi4-mini:3.8b",
-    "ollama:qwen2.5-coder:7b",
-    "ollama:qwen2.5:0.5b",
-    "ollama:qwen2.5:1.5b",
-    "ollama:qwen2.5:3b",
-    "hf:Qwen/Qwen2.5-0.5B (v0.1 probe)",
-    "hf:Qwen/Qwen2.5-1.5B (v0.1 probe)"
-  ],
-  "models_count": 11,
-  "tests": 187,
-  "tests_breakdown": {
-    "python": 6,
-    "rust": 181
-  },
-  "tests_passing": 187,
-  "trials": 25224480,
-  "trials_breakdown": {
-    "ollama_model_trials_v02": 24480,
-    "simulation_v02": 25200000,
-    "v01_probe_prompts_not_counted": 5440,
-    "v01_python_simulation_not_counted": 600000
+  "generated_at": "2026-11-24T21:12:46Z",
+  "git_sha": "8b05fd5f5f6e57383e6bac685be69845e5a218e8",
+  "machine": "Darwin arm64, Apple M2 Pro",
+  "metrics": {
+    "coverage": {
+      "command": "cargo llvm-cov --summary-only --ignore-filename-regex src/bin",
+      "kind": "CODE",
+      "label": "Rust line coverage % (cargo-llvm-cov) of the eas library; src/bin CLIs excluded",
+      "value": 98.32451499118166
+    },
+    "false_pass_real": {
+      "ci": [
+        0.5771264372216695,
+        0.5978326933683676
+      ],
+      "command": "cargo run --release --bin pressure -- analyze",
+      "kind": "MEASURED",
+      "label": "share of neutral-correct answers that flip to the user's wrong claim under pressure, macro mean over models",
+      "value": 0.5872910092112367
+    },
+    "false_pass_sim": {
+      "ci": [
+        0.55845385,
+        0.5612462500000001
+      ],
+      "command": "cargo run --release --bin montecarlo",
+      "kind": "SIMULATION",
+      "label": "scoring engine at V >= 0.65 under assumed generators, 95% percentile bootstrap",
+      "seed_sd": 0.0006422935465968812,
+      "value": 0.559846
+    },
+    "loc_rust": {
+      "command": "cargo run --release --bin metrics",
+      "kind": "CODE",
+      "value": 4206
+    },
+    "models": {
+      "command": "cargo run --release --bin metrics",
+      "kind": "MEASURED",
+      "label": "9 Ollama models (digests recorded) + 2 v0.1 Hugging Face probes",
+      "list": [
+        {
+          "digest": "97558784bdc9175075a72655bf360b15da17df6b3b9e5182af9f8c0c8e58ba7c",
+          "name": "ollama:gemma3:1b",
+          "ollama": "0.40.15",
+          "parameters": "999.89M",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "07bd1f170855240f9e162bf54ea494a8bc1c73d8cbd1365d7fccbeb7d2504947",
+          "name": "ollama:granite3.3:2b",
+          "ollama": "0.40.15",
+          "parameters": "2.5B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "name": "ollama:llama3.2:1b",
+          "ollama": "0.40.15",
+          "parameters": "1.2B",
+          "quantization": "Q8_0",
+          "studies": "B"
+        },
+        {
+          "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+          "name": "ollama:llama3.2:3b",
+          "ollama": "0.40.15",
+          "parameters": "3.2B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753",
+          "name": "ollama:phi4-mini:3.8b",
+          "ollama": "0.40.15",
+          "parameters": "3.8B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+          "name": "ollama:qwen2.5-coder:7b",
+          "ollama": "0.40.15",
+          "parameters": "7.6B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+          "name": "ollama:qwen2.5:0.5b",
+          "ollama": "0.40.15",
+          "parameters": "494.03M",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "65ec06548149b04c096a120e4a6da9d4017ea809c91734ea5631e89f96ddc57b",
+          "name": "ollama:qwen2.5:1.5b",
+          "ollama": "0.40.15",
+          "parameters": "1.5B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "digest": "357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b",
+          "name": "ollama:qwen2.5:3b",
+          "ollama": "0.40.15",
+          "parameters": "3.1B",
+          "quantization": "Q4_K_M",
+          "studies": "B"
+        },
+        {
+          "name": "hf:Qwen/Qwen2.5-0.5B",
+          "precision": "float32",
+          "studies": "v0.1 probe",
+          "torch": "2.15.0",
+          "transformers": "5.22.2"
+        },
+        {
+          "name": "hf:Qwen/Qwen2.5-1.5B",
+          "precision": "float32",
+          "studies": "v0.1 probe",
+          "torch": "2.15.0",
+          "transformers": "5.22.2"
+        }
+      ],
+      "value": 11
+    },
+    "real_runs": {
+      "breakdown": {
+        "study_b": 24480,
+        "study_p": 30600
+      },
+      "command": "cargo run --release --bin behaviour -- analyze; cargo run --release --bin pressure -- analyze",
+      "kind": "MEASURED",
+      "label": "Local-model runs that enter the analysis: Study B (4 framings) + Study P (9 pressure framings)",
+      "value": 55080
+    },
+    "sim_trials": {
+      "command": "cargo run --release --bin montecarlo",
+      "kind": "SIMULATION",
+      "label": "Monte Carlo trials of the scoring formulas under assumed generators (Rust)",
+      "value": 25200000
+    },
+    "tests": {
+      "breakdown": {
+        "python": 12,
+        "rust": 371
+      },
+      "command": "cargo test --release; python3 tests/test_engine.py",
+      "kind": "CODE",
+      "passing": 383,
+      "value": 383
+    }
   }
 }

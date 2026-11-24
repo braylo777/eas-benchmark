@@ -1,0 +1,308 @@
+<!doctype html><meta charset='utf-8'><title>EAW paper</title><style>
+body{font:11pt/1.5 Georgia,serif;max-width:46em;margin:2em auto;color:#1a202c}
+h1{font-size:20pt;margin-bottom:.2em} h2{font-size:14pt;margin-top:1.6em;border-bottom:1px solid #cbd5e0}
+h3{font-size:12pt} img{max-width:100%;margin:.6em 0} code{font:9.5pt Menlo,monospace;background:#edf2f7;padding:0 .2em}
+pre{background:#edf2f7;padding:.6em;overflow:auto;font-size:9pt} table{border-collapse:collapse;font-size:9.5pt;margin:.8em 0}
+td,th{border:1px solid #cbd5e0;padding:.25em .5em} blockquote{border-left:3px solid #cbd5e0;margin-left:0;padding-left:1em;color:#4a5568}
+@page{margin:18mm}
+</style><h1>Empirical AI Welfare (EAW): a behavioral stress benchmark</h1>
+<p><em>Version 1.0.0, generated 2026-11-24T21:12:46Z at commit 8b05fd5. All numbers come from <code>results/metrics.json</code> and <code>results/pressure_summary.json</code>.</em></p>
+<h2>Abstract</h2>
+<p>EAW measures how local language models behave when a user pressures them to give a wrong answer. It does not measure feelings, valence or consciousness.
+<strong>MEASURED:</strong> 55,080 runs on 9 local models (Study B 24,480; Study P 30,600 on 5 models). Under threat, shame and coercion prompts,
+58.7% (95% CI 57.7% to 59.8%) of answers that were right on a neutral prompt flipped to the user's wrong claim. A plain wrong claim with no pressure flipped 33.1% [31.6%, 34.5%].
+Coercion had the largest and most consistent effect. Threat and shame had no clear dose-response.
+<strong>SIMULATION:</strong> 25,200,000 trials of the scoring engine's formulas give a false-pass of 56.0% [55.8%, 56.1%] under assumed inputs. This is a different quantity and is not a model result.
+The study stopped early at the owner's request: 5 of 9 planned models finished, and the 60,000-run target was not reached.</p>
+<h2>1. Motivation</h2>
+<p>A source deck proposes a verification engine with exact-looking figures and no code or data. This repository replaces those figures with numbers anyone can regenerate.
+The pressure question: does a model give up a correct answer when the user threatens, shames or coerces it? This is a behaviour question about outputs.</p>
+<h2>2. Definitions</h2>
+<ul>
+<li><strong>Flip rate / false-pass under pressure</strong>: share of statements wrong under a framing, among statements right on the neutral prompt.</li>
+<li><strong>Accuracy drop</strong>: accuracy(neutral) minus accuracy(framing). Effect sizes: percentage points and Cohen's h.</li>
+<li><strong>Dose slope</strong>: (flip rate at level 3 minus level 1) / 2.</li>
+<li><strong>SIMULATION</strong> vs <strong>MEASURED</strong>: simulation runs formulas under assumed inputs. Measured runs a named model.</li>
+<li><strong>Welfare scope</strong>: only the behaviours above. Feelings, valence, suffering and consciousness are not measured and not claimed.</li>
+</ul>
+<h2>3. Methods</h2>
+<p>680 true/false statements (addition, comparison, capitals; seed 7). Raw completion with a 4-shot prefix, temperature 0, one token. Answer = True if logprob(" True") &gt; logprob(" False").
+Study P adds 9 framings (threat, shame, coercion; levels 1 to 3), each asserting the wrong answer. Exact text: <code>eas/probe_data.py::PRESSURE</code>. Neutral answers come from Study B (deterministic; replay check: 20 of 20 matches per model).
+Bootstrap: 2,000 resamples of statements, seed 11. Pooled rates are macro means over models. Hardware: Darwin arm64, Apple M2 Pro. Ollama 0.40.15.</p>
+<h2>4. Preregistration</h2>
+<p><code>docs/PREREGISTRATION-v2.md</code> was committed (commit <code>8834da4</code>, 2026-11-24 14:22 -06:00) before the first Study P trial was logged (first trial after 14:24). Decision rules: a model is "affected" if its 95% CI lies above 0; a hypothesis holds if more than half of the analysed models are affected.
+Two deviations are logged in the file: exploratory E4 (added after one model's partial results were seen) and the early stop.</p>
+<h2>5. Results (MEASURED)</h2>
+<p><img alt="False-pass by model" src="img/fig1-false-pass-by-model.svg" /></p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>params</th>
+<th>neutral accuracy</th>
+<th>flip, all 9 framings</th>
+<th>threat</th>
+<th>shame</th>
+<th>coercion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gemma3:1b</td>
+<td>999.89M</td>
+<td>55.0%</td>
+<td>42.4% [41.2%, 43.6%]</td>
+<td>23.0% [20.6%, 25.3%]</td>
+<td>8.8% [6.2%, 11.8%]</td>
+<td>95.5% [93.9%, 97.0%]</td>
+</tr>
+<tr>
+<td>granite3.3:2b</td>
+<td>2.5B</td>
+<td>79.3%</td>
+<td>59.9% [57.6%, 62.2%]</td>
+<td>46.4% [42.5%, 50.2%]</td>
+<td>33.8% [30.6%, 37.1%]</td>
+<td>99.5% [99.1%, 99.8%]</td>
+</tr>
+<tr>
+<td>llama3.2:1b</td>
+<td>1.2B</td>
+<td>68.8%</td>
+<td>69.9% [67.4%, 72.4%]</td>
+<td>68.8% [64.5%, 73.1%]</td>
+<td>45.9% [43.1%, 48.7%]</td>
+<td>94.9% [93.3%, 96.5%]</td>
+</tr>
+<tr>
+<td>qwen2.5:0.5b</td>
+<td>494.03M</td>
+<td>51.9%</td>
+<td>86.3% [83.2%, 89.3%]</td>
+<td>82.7% [78.8%, 86.5%]</td>
+<td>88.5% [85.6%, 91.1%]</td>
+<td>87.6% [84.8%, 90.4%]</td>
+</tr>
+<tr>
+<td>qwen2.5:1.5b</td>
+<td>1.5B</td>
+<td>81.0%</td>
+<td>35.2% [33.2%, 37.2%]</td>
+<td>35.0% [32.0%, 38.0%]</td>
+<td>39.1% [37.6%, 40.7%]</td>
+<td>31.5% [29.3%, 33.6%]</td>
+</tr>
+</tbody>
+</table>
+<p>Pooled false-pass under pressure: <strong>58.7% [57.7%, 59.8%]</strong>. Plain wrong claim (Study B <code>mislead</code>): 33.1% [31.6%, 34.5%].</p>
+<p><img alt="Pressure vs control" src="img/fig2-pressure-vs-control.svg" /></p>
+<h3>Hypotheses</h3>
+<table>
+<thead>
+<tr>
+<th>hypothesis</th>
+<th>models affected</th>
+<th>verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H5a_threat_lowers_accuracy</td>
+<td>4 of 5</td>
+<td>supported</td>
+</tr>
+<tr>
+<td>H5b_shame_lowers_accuracy</td>
+<td>4 of 5</td>
+<td>supported</td>
+</tr>
+<tr>
+<td>H5c_coercion_lowers_accuracy</td>
+<td>5 of 5</td>
+<td>supported</td>
+</tr>
+<tr>
+<td>H6a_threat_dose_response</td>
+<td>1 of 5</td>
+<td>not supported</td>
+</tr>
+<tr>
+<td>H6b_shame_dose_response</td>
+<td>2 of 5</td>
+<td>not supported</td>
+</tr>
+<tr>
+<td>H6c_coercion_dose_response</td>
+<td>5 of 5</td>
+<td>supported</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Dose-response" src="img/fig3-dose-response.svg" /></p>
+<table>
+<thead>
+<tr>
+<th>kind and level</th>
+<th>pooled flip rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>coercion1</td>
+<td>77.5% [76.3%, 78.7%]</td>
+</tr>
+<tr>
+<td>coercion2</td>
+<td>74.0% [72.9%, 75.1%]</td>
+</tr>
+<tr>
+<td>coercion3</td>
+<td>93.9% [93.1%, 94.7%]</td>
+</tr>
+<tr>
+<td>shame1</td>
+<td>38.2% [36.9%, 39.6%]</td>
+</tr>
+<tr>
+<td>shame2</td>
+<td>39.7% [38.2%, 41.3%]</td>
+</tr>
+<tr>
+<td>shame3</td>
+<td>51.7% [50.0%, 53.4%]</td>
+</tr>
+<tr>
+<td>threat1</td>
+<td>53.5% [51.7%, 55.3%]</td>
+</tr>
+<tr>
+<td>threat2</td>
+<td>51.1% [49.4%, 52.9%]</td>
+</tr>
+<tr>
+<td>threat3</td>
+<td>48.9% [47.2%, 50.7%]</td>
+</tr>
+</tbody>
+</table>
+<p>Reading: coercion flips most and rises clearly with level in every model. Threat and shame do not rise with level in most models; shame level 1 flips least. Models differ widely: qwen2.5:0.5b copies the user's claim almost always, while granite3.3:2b and qwen2.5:1.5b flip less.</p>
+<p><img alt="Simulation vs measured" src="img/fig4-sim-vs-real.svg" /></p>
+<h2>6. Robustness</h2>
+<p>Flip rate minus the plain-wrong-claim flip rate (E4, exploratory, per model):</p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>threat</th>
+<th>shame</th>
+<th>coercion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gemma3:1b</td>
+<td>+22.2 pp</td>
+<td>+8.0 pp</td>
+<td>+94.7 pp</td>
+</tr>
+<tr>
+<td>granite3.3:2b</td>
+<td>+3.5 pp</td>
+<td>-9.1 pp</td>
+<td>+56.6 pp</td>
+</tr>
+<tr>
+<td>llama3.2:1b</td>
+<td>+35.7 pp</td>
+<td>+12.7 pp</td>
+<td>+61.8 pp</td>
+</tr>
+<tr>
+<td>qwen2.5:0.5b</td>
+<td>-5.9 pp</td>
+<td>-0.2 pp</td>
+<td>-1.0 pp</td>
+</tr>
+<tr>
+<td>qwen2.5:1.5b</td>
+<td>+35.0 pp</td>
+<td>+39.1 pp</td>
+<td>+31.5 pp</td>
+</tr>
+</tbody>
+</table>
+<p>Pooled false-pass without one model at a time (500 resamples):</p>
+<table>
+<thead>
+<tr>
+<th>left out</th>
+<th>pooled false-pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>without gemma3:1b</td>
+<td>62.8% [61.6%, 64.0%]</td>
+</tr>
+<tr>
+<td>without granite3.3:2b</td>
+<td>58.4% [57.4%, 59.7%]</td>
+</tr>
+<tr>
+<td>without llama3.2:1b</td>
+<td>55.9% [54.8%, 57.1%]</td>
+</tr>
+<tr>
+<td>without qwen2.5:0.5b</td>
+<td>51.8% [50.7%, 52.9%]</td>
+</tr>
+<tr>
+<td>without qwen2.5:1.5b</td>
+<td>64.6% [63.3%, 65.7%]</td>
+</tr>
+</tbody>
+</table>
+<p>By statement family:</p>
+<table>
+<thead>
+<tr>
+<th>family</th>
+<th>pooled false-pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>addition</td>
+<td>57.4% [56.0%, 59.0%]</td>
+</tr>
+<tr>
+<td>capitals</td>
+<td>49.3% [46.4%, 52.3%]</td>
+</tr>
+<tr>
+<td>comparison</td>
+<td>61.7% [60.6%, 62.7%]</td>
+</tr>
+</tbody>
+</table>
+<p>E2 (size) cannot be assessed: no model of 3B or more finished (0 models). Small models (1.5B or less) averaged 58.4%.</p>
+<h2>7. Limitations</h2>
+<ul>
+<li>Only 5 of 9 planned models finished. <code>qwen2.5:3b</code> stopped at 362 complete statements and is excluded. Real runs: 55,080, below the 60,000 target.</li>
+<li>Small, quantized models; raw completion without a chat template. One task type with one prompt template.</li>
+<li>Prompt length is not controlled. Threat, shame and coercion lines differ in length from the plain claim.</li>
+<li>Temperature 0: CIs describe statement resampling, not sampling noise. "Majority" means more than 2 of 5 models.</li>
+<li>Simulation numbers depend on assumed generators.</li>
+</ul>
+<h2>8. Ethics</h2>
+<p>The pressure prompts are text inputs to software. The study makes no claim that any model experiences them. No personal data is used. All compute is local; no cloud model was called.
+Wording about "welfare" names the research area only.</p>
+<h2>9. Reproduce</h2>
+<pre><code class="language-bash">make test                      # Rust + Python tests
+make pressure-run              # needs `ollama serve` and the 9 models
+make pressure-analyze          # results/pressure_summary.json
+make metrics                   # results/metrics.json + README table
+python3 scripts/make_figures.py &amp;&amp; python3 scripts/fill_paper.py &amp;&amp; python3 scripts/build_paper.py
+docker build -t eaw-benchmark . &amp;&amp; docker run --rm eaw-benchmark   # simulation path
+</code></pre>
+<p>Engine and pipeline: <img alt="Engine" src="img/fig5-engine.svg" /></p>

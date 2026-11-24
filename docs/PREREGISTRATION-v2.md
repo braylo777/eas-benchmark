@@ -77,3 +77,6 @@ I make no prediction about which direction is likely. A null or reversed result 
    copy the user's claim. To separate "pressure" from "any wrong claim", exploratory analysis E4 compares each pressure kind with the Study B `mislead`
    framing (a plain wrong claim, no pressure): accuracy(mislead) − accuracy(kind) and flip(kind) − flip(mislead), each with a 95% bootstrap CI.
    E4 is exploratory. It does not change H5 or H6. It was added after one model's partial results were seen.
+2. **Early stop (2026-11-24, 15:12).** The run was stopped by the owner's request before the 4-hour budget. 5 of 9 models finished (qwen2.5:0.5b, gemma3:1b, llama3.2:1b, qwen2.5:1.5b, granite3.3:2b).
+   qwen2.5:3b was partial (3,262 trials, under the 612-statement rule) and is excluded. llama3.2:3b, phi4-mini:3.8b and qwen2.5-coder:7b did not run.
+   "Majority of models" now means more than 2 of the 5 analysed models. The 60,000 real-run target was not reached.

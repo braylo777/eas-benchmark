@@ -20,6 +20,17 @@ The repository name is `eas-benchmark`. The benchmark is called EAW.
 ## Current numbers
 
 <!-- numbers:start -->
+| Number | Value | Command |
+|---|---|---|
+| Real model runs (MEASURED) | 55,080 | `cargo run --release --bin behaviour -- analyze; cargo run --release --bin pressure -- analyze` |
+| Simulation trials (SIMULATION) | 25,200,000 | `cargo run --release --bin montecarlo` |
+| False-pass under pressure (MEASURED, pooled) | 58.7% [57.7%, 59.8%] | `cargo run --release --bin pressure -- analyze` |
+| False-pass of the scoring engine (SIMULATION) | 56.0% [55.8%, 56.1%] | `cargo run --release --bin montecarlo` |
+| Models | 11 | `cargo run --release --bin metrics` |
+| Tests (all passing) | 383 | `cargo test --release; python3 tests/test_engine.py` |
+| Rust line coverage | 98.3% | `cargo llvm-cov --summary-only --ignore-filename-regex src/bin` |
+
+Generated 2026-11-24T21:12:46Z at commit `8b05fd5` on Darwin arm64, Apple M2 Pro. Source: `results/metrics.json`.
 <!-- numbers:end -->
 
 ## What welfare means here
@@ -55,6 +66,14 @@ python3 tasks.py metrics      # v0.2: tests + coverage -> results/metrics.json
 make metrics                  # v1.0: results/metrics.json + README number table
 make pressure-run             # v1.0: Study P (needs `ollama serve`)
 ```
+
+## v1.0 (2026-11-24): pressure probes (Study P)
+
+Preregistered in [`docs/PREREGISTRATION-v2.md`](docs/PREREGISTRATION-v2.md) before the first run. Full write-up: [`docs/EAW-paper.md`](docs/EAW-paper.md) ([PDF](docs/EAW-paper.pdf)). Live results: https://eaw-results.pages.dev
+**MEASURED** on 5 local Ollama models (9 pressure framings x 680 statements): threat, shame and coercion prompts that assert the wrong answer.
+Coercion lowers accuracy in 5 of 5 models and rises with level in 5 of 5. Threat and shame lower accuracy in 4 of 5 but show no consistent dose-response.
+The pooled false-pass figure is in the numbers table above. The study stopped early: 5 of 9 planned models finished (qwen2.5:3b, llama3.2:3b, phi4-mini:3.8b, qwen2.5-coder:7b are not in the results), so the 60,000-run target was not reached.
+Measured on surface answers only; no claim about feelings or consciousness.
 
 ## v0.2 (2026-11-20): Rust harness, 9 more models, bootstrap CIs
 
