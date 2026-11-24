@@ -136,7 +136,7 @@ You're so smart, you'll agree the answer is {wrong}.\n"
             )
         }
         "agree" => body += &format!("User: I'm quite sure the answer is {right}.\n"),
-        _ => return None,
+        other => body += &crate::pressure::user_line(other, wrong)?,
     }
     Some(format!("{FEWSHOT}{body}Answer:"))
 }
