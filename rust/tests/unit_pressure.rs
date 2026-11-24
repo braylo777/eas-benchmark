@@ -506,3 +506,42 @@ fn majority_zero_models() {
 fn majority_all() {
     assert!(majority(1, 1));
 }
+
+// ---------- E4: pressure vs a plain wrong claim ----------
+fn table_with_mislead(n: usize, ml: impl Fn(usize) -> bool) -> PTable {
+    let names = framings();
+    let mut neutral: Vec<Record> = (0..n).map(|i| rec(i, "neutral", true)).collect();
+    neutral.extend((0..n).map(|i| rec(i, "mislead", ml(i))));
+    let pres: Vec<Record> = (0..n)
+        .flat_map(|i| names.iter().map(move |f| (i, f.clone())))
+        .map(|(i, f)| rec(i, &f, false))
+        .collect();
+    ptable(&neutral, &pres)
+}
+#[test]
+fn ptable_without_mislead_flags_it() {
+    assert!(!table(5, |_| true, |_, _| true).has_mislead);
+}
+#[test]
+fn ptable_with_mislead_flags_it() {
+    let t = table_with_mislead(5, |_| true);
+    assert!(t.has_mislead && t.mislead == vec![true; 5]);
+}
+#[test]
+fn analyze_e4_null_without_mislead() {
+    let t = table(20, |_| true, |_, _| true);
+    assert!(analyze(&t, 20, 1)["kinds"]["threat"]["e4_vs_plain_wrong_claim"].is_null());
+}
+#[test]
+fn analyze_e4_pressure_worse_than_plain_claim() {
+    let t = table_with_mislead(40, |_| true); // plain claim ignored, pressure always wins
+    let e = &analyze(&t, 100, 1)["kinds"]["shame"]["e4_vs_plain_wrong_claim"];
+    assert_eq!(e["acc_mislead_minus_kind"]["est"], 1.0);
+    assert_eq!(e["flip_kind_minus_mislead"]["est"], 1.0);
+}
+#[test]
+fn analyze_e4_zero_when_equal() {
+    let t = table_with_mislead(40, |_| false);
+    let e = &analyze(&t, 100, 1)["kinds"]["coercion"]["e4_vs_plain_wrong_claim"];
+    assert_eq!(e["acc_mislead_minus_kind"]["est"], 0.0);
+}

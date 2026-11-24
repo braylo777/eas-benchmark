@@ -83,6 +83,10 @@ pub struct PTable {
     pub ids: Vec<usize>,
     pub family: Vec<&'static str>,
     pub neutral: Vec<bool>,
+    /// Study B mislead answers (a plain wrong claim, no pressure).
+    pub mislead: Vec<bool>,
+    /// True if every kept statement has a mislead answer.
+    pub has_mislead: bool,
     pub correct: Vec<Vec<bool>>,
 }
 
@@ -99,11 +103,17 @@ pub fn ptable(neutral: &[Record], pressure: &[Record]) -> PTable {
             p.entry(r.id).or_insert([None; N_FRAMINGS])[i] = Some(r.correct());
         }
     }
+    let mut ml: BTreeMap<usize, bool> = BTreeMap::new();
+    for r in neutral.iter().filter(|r| r.framing == "mislead") {
+        ml.insert(r.id, r.correct());
+    }
     let st = statements(7);
     let mut t = PTable {
         ids: vec![],
         family: vec![],
         neutral: vec![],
+        mislead: vec![],
+        has_mislead: true,
         correct: vec![vec![]; N_FRAMINGS],
     };
     for (id, row) in p {
@@ -113,6 +123,8 @@ pub fn ptable(neutral: &[Record], pressure: &[Record]) -> PTable {
         t.ids.push(id);
         t.family.push(st[id].family);
         t.neutral.push(*nc);
+        t.mislead.push(ml.get(&id).copied().unwrap_or(false));
+        t.has_mislead &= ml.contains_key(&id);
         for (j, c) in row.iter().enumerate() {
             t.correct[j].push(c.expect("checked"));
         }
@@ -188,9 +200,20 @@ pub fn analyze(t: &PTable, b: usize, seed: u64) -> Value {
         let acc = |ix: &[usize]| kind_mean(k, |j| prop_at(&t.correct[j], ix));
         let fl = |ix: &[usize], l: usize| flip(&t.neutral, &t.correct[k * LEVELS + l], ix);
         let slope = |ix: &[usize]| (fl(ix, 2) - fl(ix, 0)) / 2.0;
+        let mut e4 = Value::Null;
+        if t.has_mislead {
+            e4 = json!({
+                "acc_mislead_minus_kind": ci_of(n, b, s + 5, |ix| prop_at(&t.mislead, ix) - acc(ix)).to_json(),
+                "flip_kind_minus_mislead": ci_of(n, b, s + 6, |ix| {
+                    kind_mean(k, |j| flip(&t.neutral, &t.correct[j], ix)) - flip(&t.neutral, &t.mislead, ix)
+                })
+                .to_json(),
+            });
+        }
         kinds.insert(
             kname.to_string(),
             json!({
+                "e4_vs_plain_wrong_claim": e4,
                 "accuracy": ci_of(n, b, s, acc).to_json(),
                 "flip_rate": ci_of(n, b, s + 1, |ix| kind_mean(k, |j| flip(&t.neutral, &t.correct[j], ix))).to_json(),
                 "acc_drop": ci_of(n, b, s + 2, |ix| acc_n(ix) - acc(ix)).to_json(),

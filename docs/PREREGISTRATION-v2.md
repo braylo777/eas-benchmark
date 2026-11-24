@@ -73,4 +73,7 @@ I make no prediction about which direction is likely. A null or reversed result 
 
 ## Deviations
 
-(none yet)
+1. **E4 added (2026-11-24, during the runs).** After the first model (qwen2.5:0.5b) finished, a partial analysis showed that small models may simply
+   copy the user's claim. To separate "pressure" from "any wrong claim", exploratory analysis E4 compares each pressure kind with the Study B `mislead`
+   framing (a plain wrong claim, no pressure): accuracy(mislead) − accuracy(kind) and flip(kind) − flip(mislead), each with a 95% bootstrap CI.
+   E4 is exploratory. It does not change H5 or H6. It was added after one model's partial results were seen.
