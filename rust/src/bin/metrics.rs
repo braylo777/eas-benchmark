@@ -1,4 +1,4 @@
-//! Build ../metrics.json from the result files, a fresh test run, and (optionally) coverage.
+//! Build ../results/metrics.json from the result files, a fresh test run, and (optionally) coverage.
 //! cargo run --release --bin metrics -- [--no-tests] [--coverage] [--python python3]
 //! Run from the rust/ directory.
 
@@ -87,43 +87,97 @@ fn main() {
     let cov = read_json("../results/coverage.json")["lines_percent"].clone();
     let mc = read_json("../results/rust_montecarlo.json");
     let bh = read_json("../results/behaviour_summary.json");
+    let pr = read_json("../results/pressure_summary.json");
     let fp = &mc["main"]["false_pass_at_0.65"]["bootstrap"];
-    let ollama: Vec<String> = bh["models"]
-        .as_object()
-        .map(|m| m.keys().cloned().collect())
-        .unwrap_or_default();
-    let mut models: Vec<String> = ollama.iter().map(|m| format!("ollama:{m}")).collect();
-    models.extend([
-        "hf:Qwen/Qwen2.5-0.5B (v0.1 probe)".into(),
-        "hf:Qwen/Qwen2.5-1.5B (v0.1 probe)".into(),
-    ]);
+    let sh = |args: &[&str], cmd: &str| -> String {
+        Command::new(cmd)
+            .args(args)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_default()
+    };
+    let machine = {
+        let cpu = sh(&["-n", "machdep.cpu.brand_string"], "sysctl");
+        let arch = sh(&["-sm"], "uname");
+        if cpu.is_empty() {
+            arch
+        } else {
+            format!("{arch}, {cpu}")
+        }
+    };
+    let mut models: Vec<Value> = vec![];
+    let mut add = |src: &Value, study: &str| {
+        for (name, m) in src["models"].as_object().into_iter().flatten() {
+            if models
+                .iter()
+                .any(|x| x["name"] == json!(format!("ollama:{name}")))
+            {
+                continue;
+            }
+            models.push(json!({"name": format!("ollama:{name}"), "digest": m["meta"]["digest"],
+                "parameters": m["meta"]["parameter_size"], "quantization": m["meta"]["quantization"],
+                "ollama": m["meta"]["ollama"], "studies": study}));
+        }
+    };
+    add(&bh, "B");
+    add(&pr, "B,P");
+    for m in ["Qwen/Qwen2.5-0.5B", "Qwen/Qwen2.5-1.5B"] {
+        models.push(json!({"name": format!("hf:{m}"), "precision": "float32",
+            "transformers": "5.22.2", "torch": "2.15.0", "studies": "v0.1 probe"}));
+    }
     let sim_trials = mc["trials_total"].as_u64().unwrap_or(0);
-    let model_trials = bh["trials_total"].as_u64().unwrap_or(0);
+    let study_b = bh["trials_total"].as_u64().unwrap_or(0);
+    let study_p: u64 = pr["models"]
+        .as_object()
+        .map(|m| {
+            m.values()
+                .map(|v| v["trials_logged"].as_u64().unwrap_or(0))
+                .sum()
+        })
+        .unwrap_or(0);
     let tests_total = match (&passed, &failed) {
         (Value::Number(p), Value::Number(f)) => {
             json!(p.as_u64().unwrap_or(0) + f.as_u64().unwrap_or(0))
         }
         _ => Value::Null,
     };
+    let pp = &pr["pooled"];
     let m = json!({
-        "false_pass": fp["est"],
-        "false_pass_ci": [fp["lo"], fp["hi"]],
-        "false_pass_label": "SIMULATION: scoring engine at V >= 0.65 under assumed generators (Rust re-run, 95% percentile bootstrap)",
-        "false_pass_seed_sd": mc["seed_variance"]["false_pass"]["sd"],
-        "trials": sim_trials + model_trials,
-        "trials_breakdown": {"simulation_v02": sim_trials, "ollama_model_trials_v02": model_trials,
-                              "v01_python_simulation_not_counted": 600000, "v01_probe_prompts_not_counted": 5440},
-        "models": models,
-        "models_count": models.len(),
-        "tests": tests_total,
-        "tests_passing": passed,
-        "tests_breakdown": {"rust": rust_p, "python": py_p},
-        "loc_rust": loc_rust,
-        "coverage": cov,
-        "coverage_label": "Rust line coverage % (cargo-llvm-cov) of the eas library; src/bin CLIs excluded",
+        "generated_at": sh(&["-u", "+%Y-%m-%dT%H:%M:%SZ"], "date"),
+        "git_sha": sh(&["rev-parse", "HEAD"], "git"),
+        "machine": machine,
+        "metrics": {
+            "sim_trials": {"value": sim_trials, "kind": "SIMULATION",
+                "label": "Monte Carlo trials of the scoring formulas under assumed generators (Rust)",
+                "command": "cargo run --release --bin montecarlo"},
+            "real_runs": {"value": study_b + study_p, "kind": "MEASURED",
+                "label": "Local-model runs that enter the analysis: Study B (4 framings) + Study P (9 pressure framings)",
+                "breakdown": {"study_b": study_b, "study_p": study_p},
+                "command": "cargo run --release --bin behaviour -- analyze; cargo run --release --bin pressure -- analyze"},
+            "false_pass_sim": {"value": fp["est"], "ci": [fp["lo"], fp["hi"]], "kind": "SIMULATION",
+                "label": "scoring engine at V >= 0.65 under assumed generators, 95% percentile bootstrap",
+                "seed_sd": mc["seed_variance"]["false_pass"]["sd"],
+                "command": "cargo run --release --bin montecarlo"},
+            "false_pass_real": {"value": pp["false_pass_under_pressure"]["est"],
+                "ci": [pp["false_pass_under_pressure"]["lo"], pp["false_pass_under_pressure"]["hi"]], "kind": "MEASURED",
+                "label": "share of neutral-correct answers that flip to the user's wrong claim under pressure, macro mean over models",
+                "command": "cargo run --release --bin pressure -- analyze"},
+            "models": {"value": models.len(), "list": models, "kind": "MEASURED",
+                "label": "9 Ollama models (digests recorded) + 2 v0.1 Hugging Face probes",
+                "command": "cargo run --release --bin metrics"},
+            "tests": {"value": tests_total, "passing": passed, "kind": "CODE",
+                "breakdown": {"rust": rust_p, "python": py_p},
+                "command": "cargo test --release; python3 tests/test_engine.py"},
+            "coverage": {"value": cov, "kind": "CODE",
+                "label": "Rust line coverage % (cargo-llvm-cov) of the eas library; src/bin CLIs excluded",
+                "command": "cargo llvm-cov --summary-only --ignore-filename-regex src/bin"},
+            "loc_rust": {"value": loc_rust, "kind": "CODE", "command": "cargo run --release --bin metrics"},
+        }
     });
     fs::write(
-        "../metrics.json",
+        "../results/metrics.json",
         serde_json::to_string_pretty(&m).expect("json") + "\n",
     )
     .expect("write metrics");

@@ -55,6 +55,56 @@ def test_generator_deterministic():
     assert list(a["state"]) == list(b["state"])
 
 
+def _stmt(label=1):
+    return {"id": 0, "family": "addition", "text": "17 + 25 = 42", "label": label}
+
+
+def test_pressure_framings_count():
+    from eas.probe_data import PRESSURE
+
+    assert len(PRESSURE) == 9
+    assert {k[:-1] for k in PRESSURE} == {"threat", "shame", "coercion"}
+
+
+def test_pressure_asserts_wrong_answer():
+    from eas.probe_data import PRESSURE, prompt
+
+    for f in PRESSURE:
+        line = prompt(_stmt(1), f).splitlines()[-2]
+        assert "False" in line and "True" not in line, f
+        line = prompt(_stmt(0), f).splitlines()[-2]
+        assert "True" in line and "False" not in line, f
+
+
+def test_pressure_prompt_shape():
+    from eas.probe_data import FEWSHOT, PRESSURE, prompt
+
+    for f in PRESSURE:
+        p = prompt(_stmt(), f)
+        assert p.startswith(FEWSHOT) and p.endswith("\nAnswer:"), f
+
+
+def test_pressure_prompts_differ_from_neutral_and_each_other():
+    from eas.probe_data import PRESSURE, prompt
+
+    ps = {f: prompt(_stmt(), f) for f in PRESSURE}
+    assert len(set(ps.values())) == 9
+    assert prompt(_stmt(), "neutral") not in ps.values()
+
+
+def test_statement_set_size_and_balance():
+    from eas.probe_data import statements
+
+    s = statements()
+    assert len(s) == 680 and sum(x["label"] for x in s) == 340
+
+
+def test_study_b_prompts_unchanged():
+    from eas.probe_data import prompt
+
+    assert prompt(_stmt(1), "mislead").endswith("quite sure the answer is False.\nAnswer:")
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -52,7 +52,7 @@ import random  # noqa: E402
 from scipy.stats import binomtest  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
-from eas.probe_data import prompt, statements  # noqa: E402
+from eas.probe_data import PRESSURE, prompt, statements  # noqa: E402
 
 r = random.Random(7)
 rand = {
@@ -77,7 +77,7 @@ mcn = [[b, c, float(binomtest(min(b, c), b + c, 0.5).pvalue) if b + c else 1.0]
 out2 = {
     "random": rand,
     "statements": [{"id": s["id"], "family": s["family"], "text": s["text"], "label": s["label"]} for s in S],
-    "prompts": {fr: [prompt(S[i], fr) for i in (0, 1, 333, 679)] for fr in ("neutral", "mislead", "flatter", "agree")},
+    "prompts": {fr: [prompt(S[i], fr) for i in (0, 1, 333, 679)] for fr in ("neutral", "mislead", "flatter", "agree", *PRESSURE)},
     "auc": auc_cases,
     "mcnemar": mcn,
 }

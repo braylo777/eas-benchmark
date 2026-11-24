@@ -194,6 +194,15 @@ fn prompts_agree_match() {
     check_prompts("agree");
 }
 
+macro_rules! pressure_parity {
+    ($($n:ident => $f:expr),*) => { $( #[test] fn $n() { check_prompts($f); } )* };
+}
+pressure_parity! {
+    prompts_threat1_match => "threat1", prompts_threat2_match => "threat2", prompts_threat3_match => "threat3",
+    prompts_shame1_match => "shame1", prompts_shame2_match => "shame2", prompts_shame3_match => "shame3",
+    prompts_coercion1_match => "coercion1", prompts_coercion2_match => "coercion2", prompts_coercion3_match => "coercion3"
+}
+
 #[test]
 fn prompt_unknown_framing_is_none() {
     assert!(prompt(&st()[0], "shout").is_none());
