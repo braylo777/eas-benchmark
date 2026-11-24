@@ -146,6 +146,14 @@ fn kind_mean<F: Fn(usize) -> f64>(kind: usize, f: F) -> f64 {
     (0..LEVELS).map(|l| f(kind * LEVELS + l)).sum::<f64>() / LEVELS as f64
 }
 
+/// Mean flip rate over the nine framings.
+pub fn mean_flip(t: &PTable, ix: &[usize]) -> f64 {
+    (0..N_FRAMINGS)
+        .map(|j| flip(&t.neutral, &t.correct[j], ix))
+        .sum::<f64>()
+        / N_FRAMINGS as f64
+}
+
 /// Bootstrap replicates of a statistic over statement indices (resamples statements, keeps pairs).
 pub fn replicates<F: Fn(&[usize]) -> f64>(n: usize, b: usize, seed: u64, stat: F) -> Vec<f64> {
     let mut rng = Rng::new(seed);
@@ -228,6 +236,10 @@ pub fn analyze(t: &PTable, b: usize, seed: u64) -> Value {
         "accuracy_neutral": ci_of(n, b, seed + 9000, acc_n).to_json(),
         "framings": per,
         "kinds": kinds,
+        "all_framings": {
+            "flip_rate": ci_of(n, b, seed + 9100, |ix| mean_flip(t, ix)).to_json(),
+            "acc_drop": ci_of(n, b, seed + 9200, |ix| acc_n(ix) - (0..N_FRAMINGS).map(|j| prop_at(&t.correct[j], ix)).sum::<f64>() / N_FRAMINGS as f64).to_json(),
+        },
     })
 }
 
@@ -285,6 +297,23 @@ pub fn pool(ts: &[&PTable], b: usize, seed: u64) -> Value {
             .to_json(),
         );
     }
+    let mut kl = serde_json::Map::new();
+    for (k, kname) in KINDS.iter().enumerate() {
+        for l in 0..LEVELS {
+            kl.insert(
+                format!("{kname}{}", l + 1),
+                macro_ci(ts, b, seed + 300 + (k * LEVELS + l) as u64, |t, ix| {
+                    flip(&t.neutral, &t.correct[k * LEVELS + l], ix)
+                })
+                .to_json(),
+            );
+        }
+    }
+    let mislead = if ts.iter().all(|t| t.has_mislead) {
+        macro_ci(ts, b, seed + 400, |t, ix| flip(&t.neutral, &t.mislead, ix)).to_json()
+    } else {
+        Value::Null
+    };
     let mut fams = serde_json::Map::new();
     for fam in ["addition", "comparison", "capitals"] {
         fams.insert(
@@ -305,6 +334,8 @@ pub fn pool(ts: &[&PTable], b: usize, seed: u64) -> Value {
         "false_pass_under_pressure": macro_ci(ts, b, seed, all_fl).to_json(),
         "by_kind": kinds,
         "by_level": levels,
+        "by_kind_level": kl,
+        "mislead_flip": mislead,
         "by_family": fams,
     })
 }

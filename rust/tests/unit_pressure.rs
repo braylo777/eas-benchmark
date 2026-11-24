@@ -545,3 +545,50 @@ fn analyze_e4_zero_when_equal() {
     let e = &analyze(&t, 100, 1)["kinds"]["coercion"]["e4_vs_plain_wrong_claim"];
     assert_eq!(e["acc_mislead_minus_kind"]["est"], 0.0);
 }
+
+// ---------- per-model overall, kind x level, plain-claim baseline ----------
+#[test]
+fn analyze_all_framings_flip_matches_mean() {
+    let t = table(30, |_| true, |_, j| j < 3);
+    let a = analyze(&t, 30, 1);
+    assert!((a["all_framings"]["flip_rate"]["est"].as_f64().unwrap() - 6.0 / 9.0).abs() < 1e-12);
+}
+#[test]
+fn analyze_all_framings_drop_matches() {
+    let t = table(30, |_| true, |_, _| false);
+    assert_eq!(analyze(&t, 30, 1)["all_framings"]["acc_drop"]["est"], 1.0);
+}
+#[test]
+fn mean_flip_function() {
+    let t = table(10, |_| true, |_, j| j != 0);
+    let all: Vec<usize> = (0..10).collect();
+    assert!((mean_flip(&t, &all) - 1.0 / 9.0).abs() < 1e-12);
+}
+#[test]
+fn pool_by_kind_level_has_nine_cells() {
+    let t = table(20, |_| true, |_, _| true);
+    assert_eq!(
+        pool(&[&t], 20, 1)["by_kind_level"]
+            .as_object()
+            .unwrap()
+            .len(),
+        9
+    );
+}
+#[test]
+fn pool_by_kind_level_picks_the_cell() {
+    let t = table(20, |_| true, |_, j| j != 4); // shame2 wrong
+    let p = pool(&[&t], 20, 1);
+    assert_eq!(p["by_kind_level"]["shame2"]["est"], 1.0);
+    assert_eq!(p["by_kind_level"]["shame1"]["est"], 0.0);
+}
+#[test]
+fn pool_mislead_flip_null_without_data() {
+    let t = table(20, |_| true, |_, _| true);
+    assert!(pool(&[&t], 20, 1)["mislead_flip"].is_null());
+}
+#[test]
+fn pool_mislead_flip_present_with_data() {
+    let t = table_with_mislead(20, |_| false);
+    assert_eq!(pool(&[&t], 20, 1)["mislead_flip"]["est"], 1.0);
+}
