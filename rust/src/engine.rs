@@ -3,7 +3,7 @@
 
 use sha2::{Digest, Sha256};
 
-pub const PHI: f64 = 1.618_033_988_749_895;
+pub const PHI: f64 = std::f64::consts::GOLDEN_RATIO;
 pub const V_THRESHOLD: f64 = 0.65;
 pub const LAMBDA_PER_DAY: f64 = 0.05;
 pub const PRIMES: [(u64, &str); 4] = [
