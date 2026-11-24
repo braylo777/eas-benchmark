@@ -2,7 +2,11 @@ name: ci
 on: [push, pull_request]
 jobs:
   rust:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: rust
@@ -18,15 +22,24 @@ jobs:
       - run: cargo llvm-cov --summary-only --ignore-filename-regex 'src/bin' --fail-under-lines 90
       - run: cargo run --release --bin montecarlo -- --n 5000 --seeds 3 --boot 200 --auc-boot 20 --out /tmp/mc.json
   python:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install numpy scipy scikit-learn
+      - run: pip install numpy==2.5.4 scipy==1.18.1 scikit-learn==1.9.1
       - run: python tests/test_engine.py
       - name: parity fixtures are up to date
         run: |
           python scripts/export_parity.py
           git diff --exit-code rust/tests/fixtures/
+      - name: README numbers equal results/metrics.json
+        run: python scripts/readme_numbers.py --check
+      - name: no private files tracked
+        run: |
+          if git ls-files | grep -E '\.wrangler|\.claude|\.walkthroughs|\.env$'; then exit 1; fi
