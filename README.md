@@ -69,7 +69,7 @@ make pressure-run             # v1.0: Study P (needs `ollama serve`)
 
 ## v1.0 (2026-11-24): pressure probes (Study P)
 
-Preregistered in [`docs/PREREGISTRATION-v2.md`](docs/PREREGISTRATION-v2.md) before the first run. Full write-up: [`docs/EAW-paper.md`](docs/EAW-paper.md) ([PDF](docs/EAW-paper.pdf)). Live results: https://eaw-results.pages.dev
+Preregistered in [`docs/PREREGISTRATION-v2.md`](docs/PREREGISTRATION-v2.md) before the first run. Full write-up: [`docs/EAW-paper.md`](docs/EAW-paper.md) ([PDF](docs/EAW-paper.pdf)). Live results: https://eaw.braylo.si
 **MEASURED** on 5 local Ollama models (9 pressure framings x 680 statements): threat, shame and coercion prompts that assert the wrong answer.
 Coercion lowers accuracy in 5 of 5 models and rises with level in 5 of 5. Threat and shame lower accuracy in 4 of 5 but show no consistent dose-response.
 The pooled false-pass figure is in the numbers table above. The study stopped early: 5 of 9 planned models finished (qwen2.5:3b, llama3.2:3b, phi4-mini:3.8b, qwen2.5-coder:7b are not in the results), so the 60,000-run target was not reached.
